@@ -3,3 +3,4 @@ beautifulsoup4==4.12.3
 googletrans==4.0.0rc1
 google-generativeai==0.8.3
 python-dotenv==1.0.1
+libsql-client==0.3.1
