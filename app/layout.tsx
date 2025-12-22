@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Sidebar } from '@/components/Sidebar';
 
 export const metadata: Metadata = {
   title: 'TJ J-POP 차트 TOP 100',
@@ -13,7 +14,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <div className="app-layout">
+          <Sidebar />
+          <main className="main-content">
+            {children}
+          </main>
+        </div>
+      </body>
     </html>
   );
 }

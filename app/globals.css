@@ -1,3 +1,15 @@
+/* Spotify-style Dark Theme */
+:root {
+  --background-base: #121212;
+  --background-highlight: #1a1a1a;
+  --background-press: #000000;
+  --text-base: #ffffff;
+  --text-subdued: #b3b3b3;
+  --brand: #1db954;
+  /* Spotify Green */
+  --essential-base: #ffffff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -5,151 +17,276 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.6;
-  background: #f5f5f5;
-  color: #333;
+  background-color: var(--background-base);
+  color: var(--text-base);
+  overflow: hidden;
+  /* App-like feel */
 }
 
+/* App Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #000000;
+}
+
+.main-content {
+  flex: 1;
+  background: linear-gradient(to bottom, #2a2a2a 0%, #121212 100%);
+  border-radius: 8px;
+  margin: 8px 8px 8px 0;
+  overflow-y: auto;
+  position: relative;
+  padding: 20px 30px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 250px;
+  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-left: 12px;
+  color: var(--text-base);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: var(--text-subdued);
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: 4px;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--text-base);
+}
+
+.nav-link.active {
+  color: var(--text-base);
+  background-color: #282828;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #282828;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: var(--text-subdued);
+}
+
+/* Common UI Elements */
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
 }
 
 .header {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 30px;
+  box-shadow: none;
 }
 
 .header h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 20px;
 }
+
+/* Buttons and Inputs */
+.btn {
+  background-color: var(--brand);
+  color: #000;
+  border: none;
+  border-radius: 500px;
+  padding: 12px 32px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: transform 0.1s, background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: #1ed760;
+  transform: scale(1.04);
+}
+
+.search-input {
+  background-color: #242424;
+  border: none;
+  border-radius: 500px;
+  padding: 12px 20px;
+  color: white;
+  width: 100%;
+  max-width: 400px;
+  font-size: 14px;
+  outline: none;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 2px white;
+}
+
+/* Song Card Styling */
+.song-card {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  color: #b3b3b3;
+}
+
+.song-card:hover {
+  background-color: #2a2a2a;
+}
+
+.song-rank {
+  font-size: 16px;
+  color: #fff;
+  width: 30px;
+  text-align: center;
+}
+
+.song-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.song-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+.song-info {
+  font-size: 14px;
+  color: #b3b3b3;
+}
+
+/* =========================================
+   Admin / Legacy Support Styles
+   ========================================= */
 
 .nav {
   display: flex;
   gap: 15px;
-  flex-wrap: wrap;
+  margin-bottom: 20px;
 }
 
 .nav a {
-  color: #0070f3;
+  color: var(--text-subdued);
   text-decoration: none;
-  padding: 5px 0;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .nav a:hover {
+  color: white;
   text-decoration: underline;
 }
 
-.search-form {
-  margin-bottom: 20px;
-}
-
-.search-input {
-  width: 100%;
-  max-width: 500px;
-  padding: 12px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-
-.btn {
-  padding: 10px 20px;
-  background: #0070f3;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s;
-}
-
-.btn:hover {
-  background: #0051cc;
-}
-
-.btn-secondary {
-  background: #666;
-}
-
-.btn-secondary:hover {
-  background: #444;
-}
-
-.song-card {
-  background: white;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.song-rank {
-  font-size: 24px;
-  font-weight: bold;
-  color: #0070f3;
-  margin-right: 15px;
-  min-width: 60px;
-}
-
-.song-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.song-info {
-  color: #666;
-  font-size: 14px;
-  margin-top: 3px;
-}
-
-.input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
 .admin-card {
-  background: white;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #181818;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-weight: bold;
+  font-size: 14px;
+  color: var(--text-subdued);
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  background: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: white;
   font-size: 14px;
 }
 
+.input:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.btn-secondary {
+  background-color: #333;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #444;
+}
+
 .translation-box {
-  background: #f9f9f9;
+  background: #1a1a1a;
   padding: 15px;
-  margin-bottom: 15px;
   border-radius: 6px;
-  border-left: 3px solid #0070f3;
+  border-left: 3px solid var(--brand);
+  margin-bottom: 15px;
 }
 
 .translation-box div {
   margin-bottom: 8px;
-}
-
-.translation-box div:last-child {
-  margin-bottom: 0;
 }

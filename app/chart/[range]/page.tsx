@@ -1,7 +1,6 @@
 import { getConfirmedSongsByRange } from '@/lib/db';
 import { SongCard } from '@/components/SongCard';
 import { SongWithRank } from '@/lib/types';
-import Link from 'next/link';
 
 type RangeType = '1-50' | '51-100';
 
@@ -21,9 +20,7 @@ export default async function ChartPage({
   if (!rangeData) {
     return (
       <div className="container">
-        <div className="header">
-          <h1>잘못된 범위입니다</h1>
-        </div>
+        <h1>잘못된 범위입니다</h1>
       </div>
     );
   }
@@ -34,25 +31,21 @@ export default async function ChartPage({
   )) as SongWithRank[];
 
   return (
-    <div className="container">
+    <div>
       <div className="header">
-        <h1>TJ J-POP 차트 TOP 100</h1>
-        <div className="nav">
-          <Link href="/chart/1-50">TOP 1-50</Link>
-          <Link href="/chart/51-100">TOP 51-100</Link>
-          <Link href="/search">검색</Link>
-        </div>
+        <h1>TOP {rangeData.start}-{rangeData.end}</h1>
+        <p style={{ color: '#b3b3b3', marginTop: '-10px', marginBottom: '30px' }}>
+          가장 인기 있는 J-POP 순위
+        </p>
       </div>
 
-      <h2 style={{ marginBottom: '15px' }}>
-        TOP {rangeData.start}-{rangeData.end}
-      </h2>
-
-      {songs.length === 0 ? (
-        <p>곡이 없습니다.</p>
-      ) : (
-        songs.map((song) => <SongCard key={song.id} song={song} />)
-      )}
+      <div style={{ paddingBottom: '50px' }}>
+        {songs.length === 0 ? (
+          <p>곡이 없습니다.</p>
+        ) : (
+          songs.map((song) => <SongCard key={song.id} song={song} />)
+        )}
+      </div>
     </div>
   );
 }
