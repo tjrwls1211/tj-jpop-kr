@@ -8,7 +8,6 @@ export function Sidebar() {
 
   const isLinkActive = (href: string) => {
     if (href === '/search') return pathname?.startsWith('/search');
-    // Exact match for charts to distinguish between ranges
     return pathname === href;
   };
 

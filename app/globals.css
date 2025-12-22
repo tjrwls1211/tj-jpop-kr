@@ -23,6 +23,8 @@ body {
   color: var(--text-base);
   overflow: hidden;
   /* App-like feel */
+  /* Prevent horizontal scroll on mobile */
+  width: 100%;
 }
 
 /* App Layout */
@@ -31,6 +33,7 @@ body {
   height: 100vh;
   width: 100vw;
   background-color: #000000;
+  overflow: hidden;
 }
 
 .main-content {
@@ -69,14 +72,42 @@ body {
   flex-direction: column;
   padding: 24px;
   flex-shrink: 0;
+  transition: width 0.3s ease;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  min-height: 36px;
 }
 
 .sidebar-logo {
   font-size: 24px;
   font-weight: 700;
-  margin-bottom: 24px;
   padding-left: 12px;
   color: var(--text-base);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-subdued);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.toggle-btn:hover {
+  color: var(--text-base);
+  background: #282828;
 }
 
 .sidebar-nav {
@@ -95,6 +126,8 @@ body {
   padding: 10px 12px;
   border-radius: 4px;
   transition: color 0.2s, background-color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-link:hover {
@@ -114,6 +147,8 @@ body {
   margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid #282828;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .footer-text {
@@ -121,10 +156,75 @@ body {
   color: var(--text-subdued);
 }
 
+/* Sidebar Collapsed State */
+.sidebar.collapsed {
+  width: 80px;
+  /* Narrow width */
+  padding: 24px 12px;
+}
+
+.sidebar.collapsed .sidebar-logo {
+  display: none;
+}
+
+.sidebar.collapsed .nav-link span {
+  /* The label text */
+  display: none;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+
+/* Bottom Nav (Mobile) - Default Hidden */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #000;
+  /* or #121212 with opacity */
+  border-top: 1px solid #282828;
+  height: 60px;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-subdued);
+  text-decoration: none;
+  font-size: 10px;
+  gap: 4px;
+}
+
+.bottom-nav-link.active {
+  color: var(--text-base);
+}
+
+.bottom-nav-link svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* Common UI Elements */
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
 }
 
 .header {
@@ -138,6 +238,10 @@ body {
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 20px;
+}
+
+.nav {
+  display: none;
 }
 
 /* Buttons and Inputs */
@@ -209,9 +313,65 @@ body {
   font-weight: normal;
 }
 
+.song-title span {
+  display: inline-block;
+  /* Fix for wrap */
+}
+
 .song-info {
   font-size: 14px;
   color: #b3b3b3;
+}
+
+/* =========================================
+   Mobile Responsiveness
+   ========================================= */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none !important;
+  }
+
+  .bottom-nav {
+    display: flex;
+  }
+
+  .main-content {
+    margin: 0;
+    border-radius: 0;
+    padding: 15px 15px 80px 15px;
+    /* Add bottom padding for nav */
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  /* Song Card Mobile Adjustments */
+  .song-card {
+    grid-template-columns: 40px 1fr;
+    /* Hide TJ Num or move it? */
+    padding: 12px 0;
+    border-bottom: 1px solid #282828;
+  }
+
+  .song-tj-num {
+    display: none;
+    /* Hide TJ num on very small screens to save space, or stack? */
+    /* Let's keep it but maybe small */
+  }
+
+  /* Actually, let's keep grid but adjust sizing */
+  .song-card {
+    grid-template-columns: 35px 1fr;
+    position: relative;
+  }
+
+  .song-tj-num {
+    position: absolute;
+    right: 0;
+    top: 12px;
+    font-size: 11px !important;
+  }
 }
 
 /* =========================================
@@ -219,6 +379,14 @@ body {
    ========================================= */
 
 .nav {
+  /* Legacy nav is hidden in main app, but if used in admin: */
+  display: flex;
+  /* Admin layout overrides or uses .nav? Admin layout used .nav */
+  /* Re-enable access for Admin Layout which uses .nav */
+}
+
+/* Specific Override for Admin Layout's .nav */
+.container>.header>.nav {
   display: flex;
   gap: 15px;
   margin-bottom: 20px;

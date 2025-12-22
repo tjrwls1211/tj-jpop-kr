@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
+import { BottomNav } from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'TJ J-POP 차트 TOP 100',
@@ -20,6 +21,7 @@ export default function RootLayout({
           <main className="main-content">
             {children}
           </main>
+          <BottomNav />
         </div>
       </body>
     </html>
