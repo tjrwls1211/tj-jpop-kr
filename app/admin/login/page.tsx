@@ -8,7 +8,8 @@ export default async function AdminLoginPage() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: '400px', marginTop: '100px' }}>
+    // Centering fix: margin: 100px auto
+    <div className="container" style={{ maxWidth: '400px', margin: '100px auto', padding: '0 20px' }}>
       <div className="admin-card">
         <h1 style={{ marginBottom: '20px' }}>관리자 로그인</h1>
         <form action={loginAction}>
