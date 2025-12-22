@@ -211,6 +211,8 @@ body {
   text-decoration: none;
   font-size: 10px;
   gap: 4px;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 .bottom-nav-link.active {
@@ -260,7 +262,7 @@ body {
 }
 
 .btn:hover {
-  background-color: #1ed760;
+  background-color: #FF9500;
   transform: scale(1.04);
 }
 
