@@ -19,7 +19,7 @@ export async function confirmSongAction(formData: FormData) {
   const id = parseInt(formData.get('id') as string);
   const titleKoMain = formData.get('title_ko_main') as string;
 
-  confirmSong(id, titleKoMain);
+  await confirmSong(id, titleKoMain);
 
   revalidatePath('/admin/pending');
   revalidatePath('/chart/[range]', 'page');
@@ -31,12 +31,12 @@ export async function requestLlmSuggestion(formData: FormData) {
   if (!tjNumber) return;
   if (!GEMINI_API_KEY) return;
 
-  const todayUsage = getLlmUsage();
+  const todayUsage = await getLlmUsage();
   if (todayUsage >= LLM_DAILY_LIMIT) {
     return;
   }
 
-  const song = getSongByTjNumber(tjNumber) as any;
+  const song = (await getSongByTjNumber(tjNumber)) as any;
   if (!song) return;
 
   const prompt = [
@@ -80,8 +80,8 @@ export async function requestLlmSuggestion(formData: FormData) {
 
     if (!llmText) return;
 
-    setSongLlm(tjNumber, llmText);
-    incrementLlmUsage();
+    await setSongLlm(tjNumber, llmText);
+    await incrementLlmUsage();
 
     revalidatePath('/admin/pending');
     revalidatePath('/chart/[range]', 'page');

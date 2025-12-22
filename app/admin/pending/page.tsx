@@ -3,9 +3,9 @@ import { SongWithRank } from '@/lib/types';
 import { confirmSongAction, requestLlmSuggestion } from './actions';
 
 export default async function AdminPendingPage() {
-  const songs = getPendingSongs() as SongWithRank[];
+  const songs = (await getPendingSongs()) as SongWithRank[];
   const llmLimit = Number(process.env.LLM_DAILY_LIMIT || '20');
-  const llmUsed = getLlmUsage();
+  const llmUsed = await getLlmUsage();
 
   return (
     <div>

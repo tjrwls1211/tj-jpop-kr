@@ -1,30 +1,101 @@
 import Database from 'better-sqlite3';
+import { createClient } from '@libsql/client';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'data', 'songs.db');
-let db: Database.Database | null = null;
-let llmUsageTableInitialized = false;
 
-export function getDb() {
-  if (!db) {
-    db = new Database(dbPath);
-    db.pragma('journal_mode = WAL');
-  }
-  return db;
+interface DbAdapter {
+  execute(sql: string, params?: any[]): Promise<any>;
+  all(sql: string, params?: any[]): Promise<any[]>;
+  get(sql: string, params?: any[]): Promise<any | undefined>;
+  run(sql: string, params?: any[]): Promise<any>;
 }
 
-function ensureLlmUsageTable() {
+// Turso 어댑터
+class TursoAdapter implements DbAdapter {
+  private client: ReturnType<typeof createClient>;
+
+  constructor(url: string, authToken: string) {
+    this.client = createClient({ url, authToken });
+  }
+
+  async execute(sql: string, params: any[] = []) {
+    return await this.client.execute({ sql, args: params });
+  }
+
+  async all(sql: string, params: any[] = []) {
+    const result = await this.client.execute({ sql, args: params });
+    return result.rows as any[];
+  }
+
+  async get(sql: string, params: any[] = []) {
+    const result = await this.client.execute({ sql, args: params });
+    return result.rows[0] as any | undefined;
+  }
+
+  async run(sql: string, params: any[] = []) {
+    const result = await this.client.execute({ sql, args: params });
+    return result;
+  }
+}
+
+// 로컬 SQLite 어댑터
+class LocalSqliteAdapter implements DbAdapter {
+  private db: Database.Database;
+
+  constructor(dbPath: string) {
+    this.db = new Database(dbPath);
+    this.db.pragma('journal_mode = WAL');
+  }
+
+  async execute(sql: string, params: any[] = []) {
+    return this.db.prepare(sql).run(...params);
+  }
+
+  async all(sql: string, params: any[] = []) {
+    return this.db.prepare(sql).all(...params);
+  }
+
+  async get(sql: string, params: any[] = []) {
+    return this.db.prepare(sql).get(...params);
+  }
+
+  async run(sql: string, params: any[] = []) {
+    return this.db.prepare(sql).run(...params);
+  }
+}
+
+// 데이터베이스 어댑터 인스턴스 관리
+let dbAdapter: DbAdapter | null = null;
+let llmUsageTableInitialized = false;
+
+function getDbAdapter(): DbAdapter {
+  if (!dbAdapter) {
+    const tursoUrl = process.env.TURSO_DATABASE_URL;
+    const tursoToken = process.env.TURSO_AUTH_TOKEN;
+
+    if (tursoUrl && tursoToken) {
+      dbAdapter = new TursoAdapter(tursoUrl, tursoToken);
+    } else {
+      const dbPath = path.join(process.cwd(), 'data', 'songs.db');
+      dbAdapter = new LocalSqliteAdapter(dbPath);
+    }
+  }
+  return dbAdapter;
+}
+
+async function ensureLlmUsageTable() {
   if (llmUsageTableInitialized) return;
-  const db = getDb();
-  db.prepare(
+  const db = getDbAdapter();
+  await db.run(
     `
     CREATE TABLE IF NOT EXISTS llm_usage (
       day TEXT PRIMARY KEY,
       count INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
-  `
-  ).run();
+  `,
+    []
+  );
   llmUsageTableInitialized = true;
 }
 
@@ -32,23 +103,22 @@ function formatToday() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function getLatestWeek(): string | null {
-  const db = getDb();
-  const result = db
-    .prepare('SELECT MAX(week) as latest_week FROM weekly_charts')
-    .get() as { latest_week: string | null };
-  return result.latest_week;
+export async function getLatestWeek(): Promise<string | null> {
+  const db = getDbAdapter();
+  const result = (await db.get('SELECT MAX(week) as latest_week FROM weekly_charts', [])) as
+    | { latest_week: string | null }
+    | undefined;
+  return result?.latest_week || null;
 }
 
-export function getConfirmedSongsByRange(start: number, end: number) {
-  const db = getDb();
-  const latestWeek = getLatestWeek();
+export async function getConfirmedSongsByRange(start: number, end: number) {
+  const db = getDbAdapter();
+  const latestWeek = await getLatestWeek();
 
   if (!latestWeek) return [];
 
-  return db
-    .prepare(
-      `
+  return await db.all(
+    `
     SELECT
       s.*,
       w.rank,
@@ -60,21 +130,20 @@ export function getConfirmedSongsByRange(start: number, end: number) {
       AND w.rank >= ?
       AND w.rank <= ?
     ORDER BY w.rank ASC
-  `
-    )
-    .all(latestWeek, start, end);
+  `,
+    [latestWeek, start, end]
+  );
 }
 
-export function searchSongs(query: string) {
-  const db = getDb();
-  const latestWeek = getLatestWeek();
+export async function searchSongs(query: string) {
+  const db = getDbAdapter();
+  const latestWeek = await getLatestWeek();
 
   if (!latestWeek) return [];
 
   const searchPattern = `%${query}%`;
-  return db
-    .prepare(
-      `
+  return await db.all(
+    `
     SELECT
       s.*,
       w.rank,
@@ -92,28 +161,27 @@ export function searchSongs(query: string) {
         s.artist_ja LIKE ?
       )
     ORDER BY w.rank ASC
-  `
-    )
-    .all(
+  `,
+    [
       latestWeek,
       searchPattern,
       searchPattern,
       searchPattern,
       searchPattern,
       searchPattern,
-      searchPattern
-    );
+      searchPattern,
+    ]
+  );
 }
 
-export function getPendingSongs() {
-  const db = getDb();
-  const latestWeek = getLatestWeek();
+export async function getPendingSongs() {
+  const db = getDbAdapter();
+  const latestWeek = await getLatestWeek();
 
   if (!latestWeek) return [];
 
-  return db
-    .prepare(
-      `
+  return await db.all(
+    `
     SELECT
       s.*,
       w.rank,
@@ -122,73 +190,70 @@ export function getPendingSongs() {
     LEFT JOIN weekly_charts w ON s.tj_number = w.tj_number AND w.week = ?
     WHERE s.is_confirmed = 0
     ORDER BY w.rank ASC
-  `
-    )
-    .all(latestWeek);
+  `,
+    [latestWeek]
+  );
 }
 
-export function getSongByTjNumber(tjNumber: string) {
-  const db = getDb();
-  return db
-    .prepare(
-      `
+export async function getSongByTjNumber(tjNumber: string) {
+  const db = getDbAdapter();
+  return await db.get(
+    `
     SELECT *
     FROM songs
     WHERE tj_number = ?
-  `
-    )
-    .get(tjNumber);
+  `,
+    [tjNumber]
+  );
 }
 
-export function setSongLlm(tjNumber: string, titleKoLlm: string) {
-  const db = getDb();
-  return db
-    .prepare(
-      `
+export async function setSongLlm(tjNumber: string, titleKoLlm: string) {
+  const db = getDbAdapter();
+  return await db.run(
+    `
     UPDATE songs
     SET title_ko_llm = ?, updated_at = CURRENT_TIMESTAMP
     WHERE tj_number = ?
-  `
-    )
-    .run(titleKoLlm, tjNumber);
+  `,
+    [titleKoLlm, tjNumber]
+  );
 }
 
-export function getLlmUsage(day?: string): number {
-  ensureLlmUsageTable();
-  const db = getDb();
+export async function getLlmUsage(day?: string): Promise<number> {
+  await ensureLlmUsageTable();
+  const db = getDbAdapter();
   const targetDay = day || formatToday();
-  const row = db
-    .prepare(
-      `
+  const row = (await db.get(
+    `
     SELECT count FROM llm_usage WHERE day = ?
-  `
-    )
-    .get(targetDay) as { count: number } | undefined;
+  `,
+    [targetDay]
+  )) as { count: number } | undefined;
   return row?.count ?? 0;
 }
 
-export function incrementLlmUsage(day?: string) {
-  ensureLlmUsageTable();
-  const db = getDb();
+export async function incrementLlmUsage(day?: string) {
+  await ensureLlmUsageTable();
+  const db = getDbAdapter();
   const targetDay = day || formatToday();
-  db.prepare(
+  await db.run(
     `
     INSERT INTO llm_usage(day, count)
     VALUES (?, 1)
     ON CONFLICT(day) DO UPDATE SET count = llm_usage.count + 1
-  `
-  ).run(targetDay);
+  `,
+    [targetDay]
+  );
 }
 
-export function confirmSong(id: number, titleKoMain: string) {
-  const db = getDb();
-  return db
-    .prepare(
-      `
+export async function confirmSong(id: number, titleKoMain: string) {
+  const db = getDbAdapter();
+  return await db.run(
+    `
     UPDATE songs
     SET title_ko_main = ?, is_confirmed = 1, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
-  `
-    )
-    .run(titleKoMain, id);
+  `,
+    [titleKoMain, id]
+  );
 }

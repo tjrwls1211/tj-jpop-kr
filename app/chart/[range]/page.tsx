@@ -28,10 +28,10 @@ export default async function ChartPage({
     );
   }
 
-  const songs = getConfirmedSongsByRange(
+  const songs = (await getConfirmedSongsByRange(
     rangeData.start,
     rangeData.end
-  ) as SongWithRank[];
+  )) as SongWithRank[];
 
   return (
     <div className="container">

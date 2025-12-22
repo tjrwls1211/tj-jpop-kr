@@ -10,7 +10,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams;
   const query = q || '';
-  const songs = query ? (searchSongs(query) as SongWithRank[]) : [];
+  const songs = query ? ((await searchSongs(query)) as SongWithRank[]) : [];
 
   return (
     <div className="container">
