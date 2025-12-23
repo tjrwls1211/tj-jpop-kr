@@ -370,10 +370,13 @@ body {
   }
 
   .song-tj-num {
-    position: absolute;
-    right: 0;
-    top: 12px;
-    font-size: 11px !important;
+    display: block !important;
+    position: static;
+    grid-column: 2;
+    text-align: left !important;
+    font-size: 13px !important;
+    margin-top: 4px;
+    color: var(--brand);
   }
 }
 
