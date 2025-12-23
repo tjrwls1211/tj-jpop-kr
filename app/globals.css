@@ -412,6 +412,7 @@ body {
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  margin-bottom: 24px;
 }
 
 .form-group {
@@ -456,8 +457,7 @@ body {
   border-radius: 6px;
   border-left: 3px solid var(--brand);
   margin-bottom: 15px;
-}
-
-.translation-box div {
-  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

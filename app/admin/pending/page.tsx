@@ -19,7 +19,7 @@ export default async function AdminPendingPage() {
       ) : (
         songs.map((song) => (
           <div key={song.id} className="admin-card">
-            <div style={{ marginBottom: '15px' }}>
+            <div style={{ marginBottom: '25px' }}>
               <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#0070f3' }}>
                 #{song.rank || '순위 없음'}
               </div>
@@ -35,20 +35,20 @@ export default async function AdminPendingPage() {
             </div>
 
             <div className="translation-box">
-              <div>
-                <strong>번역기</strong> {song.title_ko_auto || '-'}
-              </div>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div>
+                  <strong>번역기:</strong> {song.title_ko_auto || '-'}
+                </div>
                 <div>
                   <strong>LLM 초안:</strong> {song.title_ko_llm || '-'}
                 </div>
-                <form action={requestLlmSuggestion} style={{ marginLeft: 'auto' }}>
-                  <input type="hidden" name="tj_number" value={song.tj_number} />
-                  <button type="submit" className="btn btn-secondary">
-                    LLM 제안 받기
-                  </button>
-                </form>
               </div>
+              <form action={requestLlmSuggestion}>
+                <input type="hidden" name="tj_number" value={song.tj_number} />
+                <button type="submit" className="btn btn-secondary">
+                  LLM 제안 받기
+                </button>
+              </form>
             </div>
 
             <form action={confirmSongAction}>

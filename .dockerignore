@@ -1,0 +1,44 @@
+# Node.js
+node_modules/
+npm-debug.log
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Environment
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+
+# Database (로컬 DB는 volume으로 마운트)
+# data/songs.db
+
+# Logs
+*.log
+logs/

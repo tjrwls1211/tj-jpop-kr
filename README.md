@@ -91,6 +91,27 @@ npm run dev
 
 ### 2. Python 크롤링 설정
 
+#### 방법 1: Docker 사용 (권장)
+
+```bash
+# 환경변수 설정
+# .env.local 파일에 필수 환경변수 입력 (아래 환경변수 섹션 참고)
+
+# Docker 이미지 빌드 (최초 1회만)
+docker-compose build
+
+# 크롤링 실행
+docker-compose up
+
+# 또는 백그라운드 실행
+docker-compose up -d
+
+# 로그 확인
+docker-compose logs -f
+```
+
+#### 방법 2: 직접 Python 실행
+
 ```bash
 # Python 가상환경 생성
 python -m venv venv
@@ -103,7 +124,9 @@ pip install -r requirements.txt
 # .env.local 파일에 필수 환경변수 입력
 
 # 크롤링 실행 (TJ API → DB 저장)
-python scripts/crawl_chart_api.py
+python scripts/crawl_chart_api_turso.py  # Turso DB 사용
+# 또는
+python scripts/crawl_chart_api.py        # 로컬 SQLite 사용
 ```
 
 ---
@@ -158,7 +181,11 @@ LLM_DAILY_LIMIT=20
 ### 1. 주간 차트 크롤링 (자동화 권장)
 
 ```bash
-python scripts/crawl_chart_api.py
+# Docker 사용 (권장)
+docker-compose up
+
+# 또는 Python 직접 실행
+python scripts/crawl_chart_api_turso.py
 ```
 
 **처리 과정:**

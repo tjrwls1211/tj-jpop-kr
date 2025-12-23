@@ -14,24 +14,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+      - name: Build Docker image
+        run: docker build -t tj-jpop-crawler .
 
-      - name: Run crawler
+      - name: Run crawler in Docker
         env:
           TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
           TURSO_AUTH_TOKEN: ${{ secrets.TURSO_AUTH_TOKEN }}
           TJ_CHART_API_URL: ${{ secrets.TJ_CHART_API_URL }}
           TRANS_SLEEP_SECONDS: 0.5
         run: |
-          python scripts/crawl_chart_api_turso.py
+          docker run \
+            -e TURSO_DATABASE_URL="${TURSO_DATABASE_URL}" \
+            -e TURSO_AUTH_TOKEN="${TURSO_AUTH_TOKEN}" \
+            -e TJ_CHART_API_URL="${TJ_CHART_API_URL}" \
+            -e TRANS_SLEEP_SECONDS="${TRANS_SLEEP_SECONDS}" \
+            tj-jpop-crawler
 
       - name: Send notification on failure
         if: failure()
