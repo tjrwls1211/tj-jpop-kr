@@ -35,7 +35,7 @@ export default async function ChartPage({
       <div className="header">
         <h1>TOP {rangeData.start}-{rangeData.end}</h1>
         <p style={{ color: '#b3b3b3', marginTop: '-10px', marginBottom: '30px' }}>
-          가장 인기 있는 J-POP 순위
+          TJ J-POP 차트 순위
         </p>
       </div>
 
