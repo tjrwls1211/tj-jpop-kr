@@ -13,10 +13,10 @@ CREATE TABLE IF NOT EXISTS songs (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 주간 차트 테이블 (매주 새로 INSERT)
-CREATE TABLE IF NOT EXISTS weekly_charts (
+-- 일간 차트 테이블 (매일 새로 INSERT)
+CREATE TABLE IF NOT EXISTS daily_charts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  week DATE NOT NULL,
+  date DATE NOT NULL,
   tj_number TEXT NOT NULL,
   rank INTEGER NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS weekly_charts (
 
 CREATE INDEX IF NOT EXISTS idx_is_confirmed ON songs(is_confirmed);
 CREATE INDEX IF NOT EXISTS idx_tj_number ON songs(tj_number);
-CREATE INDEX IF NOT EXISTS idx_week ON weekly_charts(week);
-CREATE INDEX IF NOT EXISTS idx_week_rank ON weekly_charts(week, rank);
+CREATE INDEX IF NOT EXISTS idx_date ON daily_charts(date);
+CREATE INDEX IF NOT EXISTS idx_date_rank ON daily_charts(date, rank);

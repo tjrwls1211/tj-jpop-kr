@@ -13,10 +13,10 @@ export interface Song {
   updated_at: string;
 }
 
-// 주간 차트 (weekly_charts 테이블)
-export interface WeeklyChart {
+// 일간 차트 (daily_charts 테이블)
+export interface DailyChart {
   id: number;
-  week: string;
+  date: string;
   tj_number: string;
   rank: number;
   created_at: string;
@@ -25,5 +25,5 @@ export interface WeeklyChart {
 // 곡 + 순위 (JOIN 결과)
 export interface SongWithRank extends Song {
   rank: number;
-  week: string;
+  date: string;
 }

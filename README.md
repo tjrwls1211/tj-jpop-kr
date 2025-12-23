@@ -59,17 +59,17 @@ tj-jpop-kr/
 - is_confirmed         (확정 여부)
 ```
 
-### weekly_charts 테이블 (주간 순위)
+### daily_charts 테이블 (일간 순위)
 ```sql
 - id                   (PK)
-- week                 (주차, DATE)
+- date                 (날짜, DATE)
 - tj_number            (FK -> songs.tj_number)
 - rank                 (순위)
 ```
 
 **장점:**
 - songs는 한 번만 INSERT (불변)
-- 순위는 weekly_charts에 매주 INSERT
+- 순위는 daily_charts에 매일 INSERT
 - 과거 순위 히스토리 추적 가능
 
 ---
@@ -178,7 +178,7 @@ LLM_DAILY_LIMIT=20
 
 ## 크롤링 플로우
 
-### 1. 주간 차트 크롤링 (자동화 권장)
+### 1. 일간 차트 크롤링 (자동화 권장)
 
 ```bash
 # Docker 사용 (권장)
@@ -191,7 +191,7 @@ python scripts/crawl_chart_api_turso.py
 **처리 과정:**
 - TJ Media API에서 J-POP TOP 100 데이터 수집
 - **신규 곡**: 구글 번역으로 `title_ko_auto` 생성 → songs 테이블 INSERT (is_confirmed=0)
-- **기존 곡**: weekly_charts 테이블에 순위만 INSERT
+- **기존 곡**: daily_charts 테이블에 순위만 INSERT
 - LLM 번역은 **실행하지 않음** (비용 절감)
 
 ### 2. 관리자 번역 확정 (수동)
@@ -213,7 +213,7 @@ python scripts/crawl_chart_api_turso.py
 ### 권장 방식: GitHub Actions + Turso DB
 
 1. **Turso DB 설정**: 클라우드 SQLite DB 생성 (무료 티어)
-2. **크롤링 자동화**: GitHub Actions에서 매주 `crawl_chart_api.py` 실행
+2. **크롤링 자동화**: GitHub Actions에서 매일 `crawl_chart_api.py` 실행
 3. **관리자 확정**: Vercel 배포된 `/admin/pending`에서 번역 확정
 4. **자동 배포**: Git push → Vercel 자동 재배포
 

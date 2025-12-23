@@ -158,7 +158,7 @@ def update_database(songs):
     cursor.execute("PRAGMA busy_timeout=30000;")
 
     today = date.today().isoformat()
-    cursor.execute("DELETE FROM weekly_charts WHERE week = ?", (today,))
+    cursor.execute("DELETE FROM daily_charts WHERE date = ?", (today,))
     print(f"기존 {today} 차트 레코드 삭제 완료\n")
 
     new_songs_count = 0
@@ -171,7 +171,7 @@ def update_database(songs):
         if existing:
             cursor.execute(
                 """
-                INSERT INTO weekly_charts (week, tj_number, rank)
+                INSERT INTO daily_charts (date, tj_number, rank)
                 VALUES (?, ?, ?)
             """,
                 (today, song["tj_number"], song["rank"]),
@@ -207,7 +207,7 @@ def update_database(songs):
 
         cursor.execute(
             """
-            INSERT INTO weekly_charts (week, tj_number, rank)
+            INSERT INTO daily_charts (date, tj_number, rank)
             VALUES (?, ?, ?)
         """,
             (today, song["tj_number"], song["rank"]),
@@ -225,7 +225,7 @@ def update_database(songs):
     print(f"\n{'='*50}")
     print("DB 업데이트 완료")
     print(f"{'='*50}")
-    print(f"이번 주차: {today}")
+    print(f"오늘 날짜: {today}")
     print(f"신규 곡 {new_songs_count}곡")
     print(f"기존 곡 순위 업데이트: {updated_songs_count}곡")
     print(f"전체 곡 {total_count}곡")

@@ -103,55 +103,55 @@ function formatToday() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export async function getLatestWeek(): Promise<string | null> {
+export async function getLatestDate(): Promise<string | null> {
   const db = getDbAdapter();
-  const result = (await db.get('SELECT MAX(week) as latest_week FROM weekly_charts', [])) as
-    | { latest_week: string | null }
+  const result = (await db.get('SELECT MAX(date) as latest_date FROM daily_charts', [])) as
+    | { latest_date: string | null }
     | undefined;
-  return result?.latest_week || null;
+  return result?.latest_date || null;
 }
 
 export async function getConfirmedSongsByRange(start: number, end: number) {
   const db = getDbAdapter();
-  const latestWeek = await getLatestWeek();
+  const latestDate = await getLatestDate();
 
-  if (!latestWeek) return [];
+  if (!latestDate) return [];
 
   return await db.all(
     `
     SELECT
       s.*,
-      w.rank,
-      w.week
+      d.rank,
+      d.date
     FROM songs s
-    INNER JOIN weekly_charts w ON s.tj_number = w.tj_number
+    INNER JOIN daily_charts d ON s.tj_number = d.tj_number
     WHERE s.is_confirmed = 1
-      AND w.week = ?
-      AND w.rank >= ?
-      AND w.rank <= ?
-    ORDER BY w.rank ASC
+      AND d.date = ?
+      AND d.rank >= ?
+      AND d.rank <= ?
+    ORDER BY d.rank ASC
   `,
-    [latestWeek, start, end]
+    [latestDate, start, end]
   );
 }
 
 export async function searchSongs(query: string) {
   const db = getDbAdapter();
-  const latestWeek = await getLatestWeek();
+  const latestDate = await getLatestDate();
 
-  if (!latestWeek) return [];
+  if (!latestDate) return [];
 
   const searchPattern = `%${query}%`;
   return await db.all(
     `
     SELECT
       s.*,
-      w.rank,
-      w.week
+      d.rank,
+      d.date
     FROM songs s
-    INNER JOIN weekly_charts w ON s.tj_number = w.tj_number
+    INNER JOIN daily_charts d ON s.tj_number = d.tj_number
     WHERE s.is_confirmed = 1
-      AND w.week = ?
+      AND d.date = ?
       AND (
         s.title_ko_main LIKE ? OR
         s.title_ko_auto LIKE ? OR
@@ -160,10 +160,10 @@ export async function searchSongs(query: string) {
         s.artist_ko LIKE ? OR
         s.artist_ja LIKE ?
       )
-    ORDER BY w.rank ASC
+    ORDER BY d.rank ASC
   `,
     [
-      latestWeek,
+      latestDate,
       searchPattern,
       searchPattern,
       searchPattern,
@@ -176,22 +176,22 @@ export async function searchSongs(query: string) {
 
 export async function getPendingSongs() {
   const db = getDbAdapter();
-  const latestWeek = await getLatestWeek();
+  const latestDate = await getLatestDate();
 
-  if (!latestWeek) return [];
+  if (!latestDate) return [];
 
   return await db.all(
     `
     SELECT
       s.*,
-      w.rank,
-      w.week
+      d.rank,
+      d.date
     FROM songs s
-    LEFT JOIN weekly_charts w ON s.tj_number = w.tj_number AND w.week = ?
+    LEFT JOIN daily_charts d ON s.tj_number = d.tj_number AND d.date = ?
     WHERE s.is_confirmed = 0
-    ORDER BY w.rank ASC
+    ORDER BY d.rank ASC
   `,
-    [latestWeek]
+    [latestDate]
   );
 }
 
