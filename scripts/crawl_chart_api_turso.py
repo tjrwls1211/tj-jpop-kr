@@ -7,7 +7,6 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 from googletrans import Translator
-from libsql_client import create_client_sync
 
 load_dotenv(".env.local")
 
@@ -27,7 +26,6 @@ ARTIST_ALIAS_MAP = {}
 
 
 def safe_print(msg: str):
-    """Print helper tolerant to console encoding issues."""
     try:
         print(msg)
     except UnicodeEncodeError:
@@ -150,36 +148,74 @@ def translate_artist(artist_ja):
         return None
 
 
+def execute_turso_sql(sql, params=None):
+    http_url = TURSO_URL.replace("libsql://", "https://")
+
+    headers = {
+        "Authorization": f"Bearer {TURSO_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    args = []
+    if params:
+        for p in params:
+            if p is None:
+                args.append({"type": "null"})
+            elif isinstance(p, int):
+                args.append({"type": "integer", "value": str(p)})
+            else:
+                args.append({"type": "text", "value": str(p)})
+
+    payload = {
+        "requests": [
+            {
+                "type": "execute",
+                "stmt": {
+                    "sql": sql,
+                    "args": args
+                }
+            }
+        ]
+    }
+
+    response = requests.post(f"{http_url}/v2/pipeline", json=payload, headers=headers)
+
+    if response.status_code != 200:
+        print(f"Turso API Error: {response.status_code}")
+        print(f"Response: {response.text}")
+        response.raise_for_status()
+
+    return response.json()
+
+
 def update_database(songs):
     if not TURSO_URL or not TURSO_TOKEN:
         print("Error: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN must be set")
         return
 
     print(f"Using Turso database: {TURSO_URL}")
-    client = create_client_sync(url=TURSO_URL, auth_token=TURSO_TOKEN)
 
     today = date.today().isoformat()
-    client.execute("DELETE FROM daily_charts WHERE date = ?", [today])
+    execute_turso_sql("DELETE FROM daily_charts WHERE date = ?", [today])
     print(f"기존 {today} 차트 레코드 삭제 완료\n")
 
     new_songs_count = 0
     updated_songs_count = 0
 
     for song in songs:
-        result = client.execute("SELECT id FROM songs WHERE tj_number = ?", [song["tj_number"]])
-        existing = result.rows[0] if result.rows else None
+        result = execute_turso_sql("SELECT id FROM songs WHERE tj_number = ?", [song["tj_number"]])
+        rows = result['results'][0]['response']['result']['rows']
+        existing = rows[0] if rows else None
 
         if existing:
-            client.execute(
-                """
-                INSERT INTO daily_charts (date, tj_number, rank)
-                VALUES (?, ?, ?)
-            """,
+            execute_turso_sql(
+                "INSERT INTO daily_charts (date, tj_number, rank) VALUES (?, ?, ?)",
                 [today, song["tj_number"], song["rank"]],
             )
             updated_songs_count += 1
             if updated_songs_count <= 10:
                 safe_print(f"순위 추가: #{song['rank']} {song['title_ja']}")
+            time.sleep(0.05)  # Turso rate limit 방지용 빼지 말 것
             continue
 
         safe_print(f"\n[신규 곡 #{song['rank']}] {song['title_ja']} - {song['artist_ja']}")
@@ -189,13 +225,8 @@ def update_database(songs):
         safe_print(f"  구글 번역: {title_ko_auto}")
         time.sleep(TRANS_SLEEP_SECONDS)
 
-        client.execute(
-            """
-            INSERT INTO songs
-            (tj_number, title_ja, title_ko_auto, title_ko_llm,
-             artist_ja, artist_ko, is_confirmed)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
-        """,
+        execute_turso_sql(
+            "INSERT INTO songs (tj_number, title_ja, title_ko_auto, title_ko_llm, artist_ja, artist_ko, is_confirmed) VALUES (?, ?, ?, ?, ?, ?, 0)",
             [
                 song["tj_number"],
                 song["title_ja"],
@@ -206,20 +237,17 @@ def update_database(songs):
             ],
         )
 
-        client.execute(
-            """
-            INSERT INTO daily_charts (date, tj_number, rank)
-            VALUES (?, ?, ?)
-        """,
+        execute_turso_sql(
+            "INSERT INTO daily_charts (date, tj_number, rank) VALUES (?, ?, ?)",
             [today, song["tj_number"], song["rank"]],
         )
 
         new_songs_count += 1
 
-    result = client.execute("SELECT COUNT(*) FROM songs WHERE is_confirmed = 0")
-    pending_count = result.rows[0][0] if result.rows else 0
-    result = client.execute("SELECT COUNT(*) FROM songs")
-    total_count = result.rows[0][0] if result.rows else 0
+    result = execute_turso_sql("SELECT COUNT(*) FROM songs WHERE is_confirmed = 0")
+    pending_count = result['results'][0]['response']['result']['rows'][0][0] if result['results'][0]['response']['result']['rows'] else 0
+    result = execute_turso_sql("SELECT COUNT(*) FROM songs")
+    total_count = result['results'][0]['response']['result']['rows'][0][0] if result['results'][0]['response']['result']['rows'] else 0
 
     print(f"\n{'='*50}")
     print("DB 업데이트 완료")
@@ -230,8 +258,6 @@ def update_database(songs):
     print(f"전체 곡 {total_count}곡")
     print(f"미확정 곡 {pending_count}곡")
     print(f"{'='*50}\n")
-
-    client.close()
 
 
 def main():
