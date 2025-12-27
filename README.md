@@ -1,9 +1,10 @@
 # TJ J-POP 차트 TOP 100
 
 TJ 노래방 J-POP 인기 차트를 한글 제목으로 쉽게 찾을 수 있는 웹 서비스
+- 차트는 하루 단위로 갱신됩니다.
+- 차트 외의 곡들 검색 **(추가 예정 - 일부만 가능)**
 
-<img width="1710" height="951" alt="스크린샷 2025-12-28 00 35 51" src="https://github.com/user-attachments/assets/b0cde605-3785-4108-bddd-c0a215f965f2" />
-
+<img width="1710" height="944" alt="스크린샷 2025-12-28 00 37 49" src="https://github.com/user-attachments/assets/2abae8f6-e6c4-4276-88e2-f214543563a8" />
 
 ---
 
