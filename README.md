@@ -2,6 +2,9 @@
 
 TJ 노래방 J-POP 인기 차트를 한글 제목으로 쉽게 찾을 수 있는 웹 서비스
 
+<img width="1710" height="951" alt="스크린샷 2025-12-28 00 35 51" src="https://github.com/user-attachments/assets/b0cde605-3785-4108-bddd-c0a215f965f2" />
+
+
 ---
 
 ## 프로젝트 구조
