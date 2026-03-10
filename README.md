@@ -1,6 +1,7 @@
 # TJ J-POP 차트 TOP 100
 
 TJ 노래방 J-POP 인기 차트를 한글 제목으로 쉽게 찾을 수 있는 웹 서비스
+<img width="1898" height="832" alt="image" src="https://github.com/user-attachments/assets/12747767-295b-4058-a6b9-3d74682660dc" />
 
 - 공개 차트는 `/chart` 단일 페이지에서 TOP 100을 보여줍니다.
 - 검색은 한국어/일본어 제목과 아티스트명을 기준으로 동작합니다.
