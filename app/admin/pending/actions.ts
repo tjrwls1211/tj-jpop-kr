@@ -22,7 +22,7 @@ export async function confirmSongAction(formData: FormData) {
   await confirmSong(id, titleKoMain);
 
   revalidatePath('/admin/pending');
-  revalidatePath('/chart/[range]', 'page');
+  revalidatePath('/chart');
   revalidatePath('/search');
 }
 
@@ -84,7 +84,7 @@ export async function requestLlmSuggestion(formData: FormData) {
     await incrementLlmUsage();
 
     revalidatePath('/admin/pending');
-    revalidatePath('/chart/[range]', 'page');
+    revalidatePath('/chart');
     revalidatePath('/search');
   } catch (error) {
     console.error('LLM 요청 실패:', error);

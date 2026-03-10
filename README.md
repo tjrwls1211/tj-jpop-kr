@@ -1,225 +1,187 @@
 # TJ J-POP 차트 TOP 100
 
 TJ 노래방 J-POP 인기 차트를 한글 제목으로 쉽게 찾을 수 있는 웹 서비스
-- 차트는 하루 단위로 갱신됩니다.
-- 차트 외의 곡들 검색 **(추가 예정 - 일부만 가능)**
 
-<img width="1710" height="944" alt="스크린샷 2025-12-28 00 37 49" src="https://github.com/user-attachments/assets/2abae8f6-e6c4-4276-88e2-f214543563a8" />
+- 공개 차트는 `/chart` 단일 페이지에서 TOP 100을 보여줍니다.
+- 검색은 한국어/일본어 제목과 아티스트명을 기준으로 동작합니다.
+- 차트 외의 곡들 검색 **(추가 예정 - 일부만 가능)**
+---
+
+## 주요 기능
+
+- TOP 100 차트 조회
+- 곡 검색
+- 관리자 번역 확정
+- Gemini 기반 제목 초안 제안
+- 차트 페이지 ISR 캐싱
 
 ---
 
 ## 프로젝트 구조
 
-```
+```text
 tj-jpop-kr/
-├── app/                    # Next.js 페이지
-│   ├── chart/[range]/     # 차트 페이지 (1-50, 51-100, 101-150, 151-200)
-│   ├── search/            # 검색 페이지
-│   └── admin/             # 관리자 페이지
-│       ├── login/         # 로그인
-│       └── pending/       # 미확정 곡 관리 + LLM 제안
-├── lib/                   # 유틸리티
-│   ├── db.ts             # DB 쿼리 함수
-│   └── auth.ts           # 인증 함수
-├── components/            # React 컴포넌트
-├── data/                  # 데이터베이스
-│   ├── schema.sql        # DB 스키마
-│   └── songs.db          # SQLite DB
-└── scripts/               # 스크립트
-    ├── crawl_chart_api.py # TJ API 크롤링 (Python)
-    └── init-db.js        # DB 초기화 (Node.js)
+├── app/
+│   ├── admin/
+│   │   ├── login/        # 관리자 로그인
+│   │   └── pending/      # 미확정 곡 관리 + LLM 제안
+│   ├── chart/            # 공개 TOP 100 차트 페이지
+│   ├── search/           # 검색 페이지
+│   ├── layout.tsx
+│   └── page.tsx          # / -> /chart 리다이렉트
+├── components/           # UI 컴포넌트
+├── data/
+│   ├── schema.sql
+│   └── songs.db          # 로컬 SQLite DB
+├── lib/
+│   ├── auth.ts
+│   ├── db.ts
+│   └── types.ts
+├── scripts/
+│   ├── crawl_chart_api.py
+│   └── init-db.js
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
 ## 기술 스택
 
-**Frontend & Backend:**
-- Next.js 15 (App Router)
-- TypeScript
+- Next.js 15 App Router
 - React 19
-- SQLite (better-sqlite3)
-
-**Data Collection:**
-- Python 3
-- TJ Media API (공식 차트 API)
-- googletrans (무료 번역)
-- Google Gemini API (gemini-2.5-flash, 온디맨드 LLM 제안)
+- TypeScript
+- SQLite (`better-sqlite3`)
+- Turso (`@libsql/client`)
+- Google Gemini API
+- Python 크롤링 스크립트
 
 ---
 
-## 데이터베이스 구조
+## 라우트
 
-### songs 테이블 (곡 정보)
-```sql
-- id                   (PK)
-- tj_number            (TJ 번호, UNIQUE)
-- title_ja             (일본어 제목)
-- title_ko_main        (최종 한글 제목 - 관리자 확정)
-- title_ko_auto        (구글 번역 결과)
-- title_ko_llm         (LLM 번역 제안)
-- artist_ja            (일본어 가수명)
-- artist_ko            (한글 가수명)
-- is_confirmed         (확정 여부)
-```
+### 공개 페이지
 
-### daily_charts 테이블 (일간 순위)
-```sql
-- id                   (PK)
-- date                 (날짜, DATE)
-- tj_number            (FK -> songs.tj_number)
-- rank                 (순위)
-```
+- `/` -> `/chart` 리다이렉트
+- `/chart` -> TOP 100 차트
+- `/search` -> 곡 검색
 
-**장점:**
-- songs는 한 번만 INSERT (불변)
-- 순위는 daily_charts에 매일 INSERT
-- 과거 순위 히스토리 추적 가능
+### 관리자 페이지
+
+- `/admin/login` -> 관리자 로그인
+- `/admin/pending` -> 번역 확정 및 LLM 제안
 
 ---
 
-## 설치 및 실행
+## 차트 캐싱
 
-### 1. Next.js 프로젝트 설정
+공개 차트 페이지는 ISR로 캐싱됩니다.
+
+- 설정 위치: [app/chart/page.tsx](/c:/Users/tjrwls/IdeaProjects/tj-jpop-kr/app/chart/page.tsx)
+- 현재 설정: `export const revalidate = 3600`
+- 의미: `/chart` 페이지를 최대 1시간 단위로 재생성
+
+관리자가 번역을 확정하거나 LLM 제안을 저장하면 `revalidatePath('/chart')`가 호출되어 차트 캐시가 즉시 무효화됩니다.
+
+---
+
+## 데이터 구조
+
+### `songs`
+
+- `id`
+- `tj_number`
+- `title_ja`
+- `title_ko_main`
+- `title_ko_auto`
+- `title_ko_llm`
+- `artist_ja`
+- `artist_ko`
+- `is_confirmed`
+
+### `daily_charts`
+
+- `id`
+- `date`
+- `tj_number`
+- `rank`
+
+---
+
+## 실행 방법
+
+### 1. Next.js 앱 실행
 
 ```bash
-# 패키지 설치
 npm install
-
-# DB 초기화
 npm run db:init
-
-# 개발 서버 실행
 npm run dev
 ```
 
-### 2. Python 크롤링 설정
+### 2. Python 크롤러 실행
 
-#### 방법 1: Docker 사용 (권장)
+#### Docker 사용
 
 ```bash
-# 환경변수 설정
-# .env.local 파일에 필수 환경변수 입력 (아래 환경변수 섹션 참고)
-
-# Docker 이미지 빌드 (최초 1회만)
 docker-compose build
-
-# 크롤링 실행
 docker-compose up
-
-# 또는 백그라운드 실행
-docker-compose up -d
-
-# 로그 확인
-docker-compose logs -f
 ```
 
-#### 방법 2: 직접 Python 실행
+#### 직접 실행
 
 ```bash
-# Python 가상환경 생성
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 패키지 설치
 pip install -r requirements.txt
-
-# 환경변수 설정
-# .env.local 파일에 필수 환경변수 입력
-
-# 크롤링 실행 (TJ API → DB 저장)
-python scripts/crawl_chart_api_turso.py  # Turso DB 사용
-# 또는
-python scripts/crawl_chart_api.py        # 로컬 SQLite 사용
+python scripts/crawl_chart_api.py
 ```
+
+Turso를 쓰는 경우에는 환경 변수 설정 후 해당 스크립트를 사용하면 됩니다.
 
 ---
 
-## 환경변수 (.env.local)
+## 환경 변수
+
+`.env.local` 예시:
 
 ```env
-# 관리자 비밀번호
 ADMIN_PASSWORD=admin123
-
-# Gemini API Key
 GEMINI_API_KEY=your_gemini_api_key_here
-
-# 데이터베이스 경로 (로컬 개발용)
-DB_PATH=data/songs.db
-
-# TJ 노래방 차트 API URL
 TJ_CHART_API_URL=https://www.tjmedia.com/legacy/api/topAndHot100
-
-# 세션 인증 (보안 강화 필수!)
-# 생성: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 SESSION_SECRET=your_session_secret_here
 SESSION_COOKIE_NAME=admin_session
-
-# LLM 설정
 GEMINI_MODEL=gemini-2.5-flash
 LLM_DAILY_LIMIT=20
 
-# Turso Database (배포용 - 선택사항)
-# TURSO_DATABASE_URL=libsql://your-database.turso.io
-# TURSO_AUTH_TOKEN=your_turso_auth_token
+# Optional
+TURSO_DATABASE_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your_turso_auth_token
 ```
 
----
-
-## 사용 방법
-
-### 공개 페이지
-- **메인**: http://localhost:3000
-- **차트**: /chart/1-50, /chart/51-100, etc.
-- **검색**: /search
-
-### 관리자 페이지
-1. http://localhost:3000/admin/login 접속
-2. 비밀번호 입력 (기본: admin123)
-3. 미확정 곡 확인 및 한글 제목 확정
+로컬 SQLite를 사용할 때 DB 파일은 기본적으로 `data/songs.db`를 사용합니다.
 
 ---
 
-## 크롤링 플로우
+## 운영 흐름
 
-### 1. 일간 차트 크롤링 (자동화 권장)
+### 1. 차트 수집
 
-```bash
-# Docker 사용 (권장)
-docker-compose up
+- TJ Media API에서 TOP 100 데이터를 수집
+- 신규 곡은 `songs`에 저장
+- 일별 순위는 `daily_charts`에 저장
 
-# 또는 Python 직접 실행
-python scripts/crawl_chart_api_turso.py
-```
+### 2. 번역 확정
 
-**처리 과정:**
-- TJ Media API에서 J-POP TOP 100 데이터 수집
-- **신규 곡**: 구글 번역으로 `title_ko_auto` 생성 → songs 테이블 INSERT (is_confirmed=0)
-- **기존 곡**: daily_charts 테이블에 순위만 INSERT
-- LLM 번역은 **실행하지 않음** (비용 절감)
-
-### 2. 관리자 번역 확정 (수동)
-
-1. `/admin/pending` 접속
-2. 미확정 곡 목록 확인
-3. **LLM 제안 받기** 버튼 클릭 (필요시만)
-   - Gemini API로 한국 대중이 실제 사용하는 제목 제안
-   - 일일 한도: 20회
-4. 구글 번역 / LLM 제안 중 선택하거나 직접 입력
-5. **확정** 클릭 → `is_confirmed=1`, 공개 페이지 노출
+- 관리자 페이지에서 미확정 곡 확인
+- 자동 번역 또는 LLM 제안 참고
+- 최종 제목을 `title_ko_main`으로 확정
+- 확정 후 공개 차트와 검색 페이지 캐시 무효화
 
 ---
 
-## 배포 (Vercel + Turso)
+## 배포 메모
 
-⚠️ **주의:** Vercel은 서버리스 환경으로 파일시스템 쓰기가 제한됩니다.
-
-### 권장 방식: GitHub Actions + Turso DB
-
-1. **Turso DB 설정**: 클라우드 SQLite DB 생성 (무료 티어)
-2. **크롤링 자동화**: GitHub Actions에서 매일 `crawl_chart_api.py` 실행
-3. **관리자 확정**: Vercel 배포된 `/admin/pending`에서 번역 확정
-4. **자동 배포**: Git push → Vercel 자동 재배포
+Vercel 환경에서는 로컬 파일 DB 지속성이 제한되므로, 배포 환경에서는 Turso 사용을 권장합니다.
 
 ---
 

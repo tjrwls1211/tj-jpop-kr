@@ -23,7 +23,7 @@ export default async function AdminLayout({
         >
           <div style={{ display: 'flex', gap: '15px' }}>
             <Link href="/admin/pending">미확정 곡</Link>
-            <Link href="/chart/1-50">공개 페이지</Link>
+            <Link href="/chart">공개 페이지</Link>
           </div>
           <LogoutButton />
         </div>
